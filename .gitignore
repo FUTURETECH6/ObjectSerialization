@@ -19,3 +19,4 @@ bin
 !*.sh
 !*.hpp
 !*.inc
+include/Serializer_old
