@@ -12,6 +12,8 @@
 #include <utility>
 #include <vector>
 
+#define USING_BASE64 0
+
 namespace ser {
     template <typename T1, typename T2 = void, typename T3 = void>
     class Base_Ser {
@@ -33,7 +35,10 @@ namespace ser {
       private:
         virtual void serialize() = 0;
         void toBase64() {
-            os << b64::encode(buffer.str());
+            if (USING_BASE64)
+                os << b64::encode(buffer.str());
+            else
+                os << buffer.str();
             os.flush();
         }
     };
@@ -52,22 +57,70 @@ namespace ser {
     class ser_pair : public Base_Ser<std::pair<T2, T3>, T2, T3> {
       private:
         using base = Base_Ser<std::pair<T2, T3>, T2, T3>;
-        void serialize() override {
-            base::buffer << base::obj.first << base::sep << base::obj.second << std::endl;
-        }
+        void serialize() override { base::buffer << base::obj.first << base::sep << base::obj.second << std::endl; }
 
       public:
         ser_pair(typename base::obj_type &obj, std::ostream &os) : base(obj, os) { serialize(); }
     };
 
     template <typename T2>
-    class sec_uptr : public Base_Ser<std::unique_ptr<T2>, T2> {
+    class ser_uptr : public Base_Ser<std::unique_ptr<T2>, T2> {
       private:
         using base = Base_Ser<std::unique_ptr<T2>, T2>;
-        void serialize() override { base::buffer << base::obj << std::endl; }
+        void serialize() override { base::buffer << *(base::obj) << std::endl; }
 
       public:
-        sec_uptr(typename base::obj_type &obj, std::ostream &os) : base(obj, os) { serialize(); }
+        ser_uptr(typename base::obj_type &obj, std::ostream &os) : base(obj, os) { serialize(); }
+    };
+
+    template <typename T2>
+    class ser_uptra : public Base_Ser<std::unique_ptr<T2[]>, T2> {
+      private:
+        using base = Base_Ser<std::unique_ptr<T2[]>, T2>;
+        void serialize() override {
+            base::buffer << size << base::sep;
+            for (auto i = 0; i < size; i++)
+                base::buffer << base::obj[i] << base::sep;
+            // copy(base::obj, &(base::obj[size]),
+            //     std::ostream_iterator<typename base::value_type>(base::buffer, base::sep));
+            base::os.flush();
+        }
+
+        size_t size;
+
+      public:
+        ser_uptra(typename base::obj_type &obj, size_t len, std::ostream &os) : base(obj, os), size(len) {
+            serialize();
+        }
+    };
+
+    template <typename T2>
+    class ser_sptr : public Base_Ser<std::shared_ptr<T2>, T2> {
+      private:
+        using base = Base_Ser<std::shared_ptr<T2>, T2>;
+        void serialize() override { base::buffer << *(base::obj) << std::endl; }
+
+      public:
+        ser_sptr(typename base::obj_type &obj, std::ostream &os) : base(obj, os) { serialize(); }
+    };
+
+    template <typename T2>
+    class ser_sptra : public Base_Ser<std::shared_ptr<T2[]>, T2> {
+      private:
+        using base = Base_Ser<std::shared_ptr<T2[]>, T2>;
+        void serialize() override {
+            base::buffer << size << base::sep;
+            for (auto i = 0; i < size; i++)
+                base::buffer << base::obj[i] << base::sep;
+            base::os.flush();
+        }
+
+        size_t size;
+
+      public:
+        ser_sptra(typename base::obj_type &obj, size_t len, std::ostream &os) : base(obj, os), size(len) {
+            serialize();
+        }
     };
 
     template <typename T2>
@@ -129,7 +182,7 @@ namespace ser {
       public:
         ser_map(typename base::obj_type &obj, std::ostream &os) : base(obj, os) { serialize(); }
     };
-} // namespace ser
+}  // namespace ser
 
 /* -------------------------------------------------------------------------- */
 
@@ -155,7 +208,10 @@ namespace des {
             buffer.clear();
             std::stringstream raw;
             raw << is.rdbuf();
-            buffer << b64::decode(raw.str());
+            if (USING_BASE64)
+                buffer << b64::decode(raw.str());
+            else
+                buffer << raw.str();
         }
     };
 
@@ -189,17 +245,59 @@ namespace des {
       private:
         using base = Base_Des<std::unique_ptr<T2>, T2>;
         void deserialize() override {
-            size_t size;
-            base::buffer >> std::skipws >> size;
-            base::obj.reset();
-            base::obj = std::make_unique<typename base::value_type>(new typename base::value_type);
-            base::buffer >> base::obj;
-            // for (auto i = 0; i < size; i++)
-            //     base::buffer >> base::obj[i];
+            base::obj = std::unique_ptr<typename base::value_type>();
+            base::buffer >> std::skipws >> *(base::obj);
         }
 
       public:
         des_uptr(typename base::obj_type &obj, std::istream &is) : base(obj, is) { deserialize(); }
+    };
+
+    template <typename T2>
+    class des_uptra : Base_Des<std::unique_ptr<T2[]>, T2> {
+      private:
+        using base = Base_Des<std::unique_ptr<T2[]>, T2>;
+        void deserialize() override {
+            size_t size;
+            base::buffer >> std::skipws >> size;
+            base::obj = std::unique_ptr<typename base::value_type[]>(new int[size]);
+            for (auto i = 0; i < size; i++)
+                base::buffer >> base::obj[i];
+            // copy(std::istream_iterator<typename base::obj_type>(base::is),
+            //     std::istream_iterator<typename base::obj_type>(), base::obj);
+        }
+
+      public:
+        des_uptra(typename base::obj_type &obj, std::istream &is) : base(obj, is) { deserialize(); }
+    };
+
+    template <typename T2>
+    class des_sptr : Base_Des<std::shared_ptr<T2>, T2> {
+      private:
+        using base = Base_Des<std::shared_ptr<T2>, T2>;
+        void deserialize() override {
+            base::obj = std::make_unique<typename base::value_type>();
+            base::buffer >> std::skipws >> *(base::obj);
+        }
+
+      public:
+        des_sptr(typename base::obj_type &obj, std::istream &is) : base(obj, is) { deserialize(); }
+    };
+
+    template <typename T2>
+    class des_sptra : Base_Des<std::shared_ptr<T2[]>, T2> {
+      private:
+        using base = Base_Des<std::shared_ptr<T2[]>, T2>;
+        void deserialize() override {
+            size_t size;
+            base::buffer >> std::skipws >> size;
+            base::obj = std::shared_ptr<typename base::value_type[]>(new int[size]);
+            for (auto i = 0; i < size; i++)
+                base::buffer >> base::obj[i];
+        }
+
+      public:
+        des_sptra(typename base::obj_type &obj, std::istream &is) : base(obj, is) { deserialize(); }
     };
 
     template <typename T2>
@@ -271,14 +369,13 @@ namespace des {
             base::obj.clear();
             for (; size-- > 0;) {
                 base::buffer >> tmpVal1 >> tmpVal2;
-                base::obj.insert(std::pair<typename base::pair_type1, typename base::pair_type2>(
-                    tmpVal1, tmpVal2));
+                base::obj.insert(std::pair<typename base::pair_type1, typename base::pair_type2>(tmpVal1, tmpVal2));
             }
         }
 
       public:
         des_map(typename base::obj_type &obj, std::istream &is) : base(obj, is) { deserialize(); }
     };
-} // namespace des
+}  // namespace des
 
 #endif
