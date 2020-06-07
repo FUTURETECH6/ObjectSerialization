@@ -64,6 +64,35 @@ namespace ser {
     };
 
     template <typename T2>
+    class ser_ptr : public Base_Ser<T2 *, T2> {
+      private:
+        using base = Base_Ser<T2 *, T2>;
+        void serialize() override { base::buffer << *(base::obj) << std::endl; }
+
+      public:
+        ser_ptr(typename base::obj_type &obj, std::ostream &os) : base(obj, os) { serialize(); }
+    };
+
+    template <typename T2>
+    class ser_ptra : public Base_Ser<T2 *, T2> {
+      private:
+        using base = Base_Ser<T2 *, T2>;
+        void serialize() override {
+            base::buffer << size << base::sep;
+            for (auto i = 0; i < size; i++)
+                base::buffer << base::obj[i] << base::sep;
+            // copy(base::obj, &(base::obj[size]),
+            //     std::ostream_iterator<typename base::value_type>(base::buffer, base::sep));
+            base::os.flush();
+        }
+
+        size_t size;
+
+      public:
+        ser_ptra(typename base::obj_type obj, size_t len, std::ostream &os) : base(obj, os), size(len) { serialize(); }
+    };
+
+    template <typename T2>
     class ser_uptr : public Base_Ser<std::unique_ptr<T2>, T2> {
       private:
         using base = Base_Ser<std::unique_ptr<T2>, T2>;
@@ -241,11 +270,42 @@ namespace des {
     };
 
     template <typename T2>
+    class des_ptr : Base_Des<T2 *, T2> {
+      private:
+        using base = Base_Des<T2 *, T2>;
+        void deserialize() override {
+            base::obj = new int;
+            base::buffer >> std::skipws >> *(base::obj);
+        }
+
+      public:
+        des_ptr(typename base::obj_type &obj, std::istream &is) : base(obj, is) { deserialize(); }
+    };
+
+    template <typename T2>
+    class des_ptra : Base_Des<T2 *, T2> {
+      private:
+        using base = Base_Des<T2 *, T2>;
+        void deserialize() override {
+            size_t size;
+            base::buffer >> std::skipws >> size;
+            base::obj = new int[size];
+            for (auto i = 0; i < size; i++)
+                base::buffer >> base::obj[i];
+            // copy(std::istream_iterator<typename base::obj_type>(base::is),
+            //     std::istream_iterator<typename base::obj_type>(), base::obj);
+        }
+
+      public:
+        des_ptra(typename base::obj_type &obj, std::istream &is) : base(obj, is) { deserialize(); }
+    };
+
+    template <typename T2>
     class des_uptr : Base_Des<std::unique_ptr<T2>, T2> {
       private:
         using base = Base_Des<std::unique_ptr<T2>, T2>;
         void deserialize() override {
-            base::obj = std::unique_ptr<typename base::value_type>();
+            base::obj = std::unique_ptr<typename base::value_type>(new int);
             base::buffer >> std::skipws >> *(base::obj);
         }
 
@@ -276,7 +336,7 @@ namespace des {
       private:
         using base = Base_Des<std::shared_ptr<T2>, T2>;
         void deserialize() override {
-            base::obj = std::make_unique<typename base::value_type>();
+            base::obj = std::shared_ptr<typename base::value_type>(new int);
             base::buffer >> std::skipws >> *(base::obj);
         }
 

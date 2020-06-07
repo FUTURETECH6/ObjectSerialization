@@ -86,4 +86,4 @@ namespace b64 {
 
         return ret;
     }
-} // namespace b64
+}  // namespace b64

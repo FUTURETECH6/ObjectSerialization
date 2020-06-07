@@ -7,4 +7,4 @@ namespace b64 {
 
     std::string encode(const std::string &);
     std::string decode(const std::string &);
-} // namespace b64
+}  // namespace b64

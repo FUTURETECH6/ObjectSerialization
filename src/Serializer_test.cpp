@@ -38,11 +38,14 @@ void foo(map<Type1, Type2> &obj, string path) {
 }
 
 int main(int argc, char const *argv[]) {
-    int i, i0                     = 3;
-    vector<int> vi, vi0           = {1, 3, 5, 7};
-    list<int> li, li0             = {2, 4, 6, 8};
-    set<int> si, si0              = {6, 7, 33, 9, 81, 31, 54};
-    map<string, int> msi, msi0    = {pair<string, int>("SC", 666), pair<string, int>("cx", 999)};
+    int i, i0                  = 3;
+    vector<int> vi, vi0        = {1, 3, 5, 7};
+    list<int> li, li0          = {2, 4, 6, 8};
+    set<int> si, si0           = {6, 7, 33, 9, 81, 31, 54};
+    map<string, int> msi, msi0 = {pair<string, int>("SC", 666), pair<string, int>("cx", 999)};
+    int *pi, *pi0              = &i0;
+    int *pai;
+    int pai0[] = {1, 45, 6, 3, 2};
     unique_ptr<int> upi, upi0     = unique_ptr<int>(new int(19));
     unique_ptr<int[]> upai, upai0 = unique_ptr<int[]>(new int[5]);
     shared_ptr<int> spi, spi0     = shared_ptr<int>(new int(89));
@@ -61,8 +64,8 @@ int main(int argc, char const *argv[]) {
     foo(li, path);
     foo(msi, path);
 
-    enum typelist { ari, vec, list, uptr, uptra, sptr, set, map };
-    switch (typelist(sptr)) {
+    enum typelist { ari, vec, list, ptr, ptra, uptr, uptra, sptr, set, map };
+    switch (typelist(ptra)) {
         case typelist(ari):
             ofile.open(path);
             ifile.open(path);
@@ -82,6 +85,22 @@ int main(int argc, char const *argv[]) {
             ifile.open(path);
             ser::ser_list<int>(li0, ofile);
             des::des_list<int>(li, ifile);
+            break;
+
+        case typelist(ptr):
+            ofile.open(path);
+            ifile.open(path);
+            ser::ser_ptr<int>(pi0, ofile);
+            des::des_ptr<int>(pi, ifile);
+            break;
+
+        case typelist(ptra):
+            ofile.open(path);
+            ifile.open(path);
+            ser::ser_ptra<int>(pai0, 5, ofile);
+            des::des_ptra<int>(pai, ifile);
+            for (auto i = 0; i < 5; i++)
+                cerr << pai[i] << " ";
             break;
 
         case typelist(uptr):
