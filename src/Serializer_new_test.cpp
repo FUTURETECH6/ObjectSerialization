@@ -33,13 +33,13 @@ int main(int argc, char const *argv[]) {
     vector<int> _vi1 = {2, 3, 4}, _vi2 = {5, 6, 7};
     map<string, int> _msi = {pair<string, int>("SC", 2), pair<string, int>("cx", 3)};
     set<string> _ss       = {"Hello", "World", "I", "Am"};
-    pair<map<string, int>, set<string>> pmsiss = make_pair(_msi, _ss);
+    pair<map<string, int>, set<string>> pmsiss, pmsiss0 = make_pair(_msi, _ss);
 
     ofile.open(path);
     ifile.open(path);
     enum typelist { ari, pair, vec, list, ptr, ptra, uptr, uptra, sptr, set, map, rr };
 
-    switch (typelist(pair)) {
+    switch (typelist(rr)) {
         case typelist(ari):
             ser::Serializer(i0, ofile);
             ofile.close();
@@ -110,87 +110,11 @@ int main(int argc, char const *argv[]) {
             des::Deserializer(msi, ifile);
             break;
         case typelist(rr):
-            ser::Serializer(pmsiss, ofile);
+            ser::Serializer(pmsiss0, ofile);
             ofile.close();
             des::Deserializer(pmsiss, ifile);
             break;
     }
 
-    // switch (typelist(pair)) {
-    //     case typelist(ari):
-    //         ser::Serializer(i0, ofile);
-    //         ofile.close();
-    //         des::Deserializer(i, ifile);
-    //         break;
-
-    //     case typelist(pair):
-    //         ser::Serializer(psi0, ofile);
-    //         ofile.close();
-    //         des::Deserializer(psi, ifile);
-    //         break;
-
-    //     case typelist(vec):
-    //         ser::Serializer(vi0, ofile);
-    //         ofile.close();
-    //         des::Deserializer(vi, ifile);
-    //         break;
-
-    //     case typelist(list):
-    //         ser::Serializer(li0, ofile);
-    //         ofile.close();
-    //         des::Deserializer(li, ifile);
-    //         break;
-
-    //     case typelist(ptr):
-    //         ser::Serializer(pi0, ofile);
-    //         ofile.close();
-    //         des::Deserializer(pi, ifile);
-    //         break;
-
-    //     case typelist(ptra):
-    //         ser::Serializer(pai0, ofile, 5);
-    //         ofile.close();
-    //         des::Deserializer(pai, ifile);
-    //         for (auto i = 0; i < 5; i++)
-    //             cerr << pai[i] << " ";
-    //         break;
-
-    //     case typelist(uptr):
-    //         ser::Serializer(upi0, ofile);
-    //         ofile.close();
-    //         des::Deserializer(upi, ifile);
-    //         break;
-
-    //     case typelist(uptra):
-    //         ser::Serializer(upai0, ofile, 5);
-    //         ofile.close();
-    //         des::Deserializer(upai, ifile);
-    //         for (auto i = 0; i < 5; i++)
-    //             cerr << upai[i] << " ";
-    //         break;
-
-    //     case typelist(sptr):
-    //         ser::Serializer(spi0, ofile);
-    //         ofile.close();
-    //         des::Deserializer(spi, ifile);
-    //         break;
-
-    //     case typelist(set):
-    //         ser::Serializer(si0, ofile);
-    //         ofile.close();
-    //         des::Deserializer(si, ifile);
-    //         break;
-
-    //     case typelist(map):
-    //         ser::Serializer(msi0, ofile);
-    //         ofile.close();
-    //         des::Deserializer(msi, ifile);
-    //         break;
-    //     case typelist(rr):
-    //         ser::Serializer(pmsviss, ofile);
-    //         ofile.close();
-    //         des::Deserializer(pmsviss, ifile);
-    //         break;
-    // }
     return 0;
 }
