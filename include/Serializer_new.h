@@ -219,7 +219,7 @@ namespace des {
     template <typename Type>
     void Deserializer(std::unique_ptr<Type> &obj, std::istream &buf) {
         obj = std::unique_ptr<Type>(new Type);
-        Deserializer(obj, buf);
+        Deserializer(*obj, buf);
     }
     template <typename Type>
     void Deserializer(std::unique_ptr<Type[]> &obj, std::istream &buf, size_t len) {
