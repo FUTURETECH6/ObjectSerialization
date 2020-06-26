@@ -1,4 +1,4 @@
-#include "Serializer_new.h"
+#include "Bin_Ser.h"
 #include <iostream>
 #include <list>
 #include <map>
@@ -28,7 +28,7 @@ int main(int argc, char const *argv[]) {
 
     ofstream ofile;
     ifstream ifile;
-    const string path = "/Users/Ulysses/Desktop/Terminal Saved Output.txt";
+    const string path = "./testfile/Bin_Ser_test.txt";
 
     vector<int> _vi1 = {2, 3, 4}, _vi2 = {5, 6, 7};
     map<string, int> _msi = {pair<string, int>("SC", 2), pair<string, int>("cx", 3)};

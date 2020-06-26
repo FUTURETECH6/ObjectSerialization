@@ -1,230 +1,248 @@
 #ifndef BIN_SER_H
 #define BIN_SER_H
 
-#include "Serializer.h"
-#include <string>
+#include "Base64.h"
+#include <fstream>
+#include <memory>
+#include <sstream>
 #include <type_traits>
 
-/*serialize*/
-class Bin_Ser {
-public:
-	template<typename Type> typename std::enable_if<std::is_arithmetic<Type>::value>::type serialize(Type &obj, std::string path);
-	template<typename Type> typename std::enable_if<std::is_pointer<Type>::value>::type serialize(Type &obj, std::string path);//?
-	template<typename Type>	void serialize(Type obj, std::string path, std::size_t len);
-	template<typename Type> void serialize(std::unique_ptr<Type> &obj, std::string path);
-	template<typename Type> void serialize(std::shared_ptr<Type> &obj, std::string path);
-	template<typename Type> void serialize(std::vector<Type> &obj, std::string path);
-	template<typename Type> void serialize(std::list<Type> &obj, std::string path);
-	template<typename Type> void serialize(std::set<Type> &obj, std::string path);
-	template<typename Type>	void serialize(std::unique_ptr<Type[]> &obj, std::string path, std::size_t len);
-	template<typename Type>	void serialize(std::shared_ptr<Type[]> &obj, std::string path, std::size_t len);
-	template<typename Type1, typename Type2> void serialize(std::pair<Type1, Type2> &obj, std::string path);
-	template<typename Type1, typename Type2> void serialize(std::map<Type1, Type2> &obj, std::string path);
-};
+#include <list>
+#include <map>
+#include <set>
+#include <utility>
+#include <vector>
 
-template <typename Type>
-typename std::enable_if<std::is_arithmetic<Type>::value>::type 
-Bin_Ser::serialize(Type &obj, std::string path) {
-	std::ofstream os(path);
-	ser::ser_ari<Type>(obj, os);
-};
+namespace ser {
+    const std::string sep = " ";
 
-template<typename Type>
-typename std::enable_if<std::is_pointer<Type>::value>::type 
-Bin_Ser::serialize(Type &obj, std::string path) {
-	std::ofstream os(path);
-	ser::ser_ptr<Type>(obj, os);
-};
+    template <typename Type>
+    typename std::enable_if<std::is_arithmetic<Type>::value || std::is_same<Type, std::string>::value>::type Serializer(
+        const Type &, std::ostream &);
+    template <typename Type1, typename Type2>
+    void Serializer(const std::pair<Type1, Type2> &, std::ostream &);
+    template <typename Type>
+    void Serializer(const std::vector<Type> &, std::ostream &);
+    template <typename Type>
+    void Serializer(const std::list<Type> &, std::ostream &);
+    template <typename Type>
+    void Serializer(const std::set<Type> &, std::ostream &);
+    template <typename Type1, typename Type2>
+    void Serializer(const std::map<Type1, Type2> &, std::ostream &);
+    template <typename Type>
+    void Serializer(const std::unique_ptr<Type> &, std::ostream &);
+    template <typename Type>
+    void Serializer(const std::unique_ptr<Type[]> &, std::ostream &, size_t len = 1);
+    template <typename Type>
+    void Serializer(const std::shared_ptr<Type> &, std::ostream &);
+    template <typename Type>
+    void Serializer(const std::shared_ptr<Type[]> &, std::ostream &, size_t len = 1);
+    template <typename Type>
+    void Serializer(const Type *obj, std::ostream &buf, size_t len = 1);
 
-template<typename Type>
-void Bin_Ser::serialize(Type obj, std::string path, std::size_t len) {
-	std::ofstream os(path);
-	ser::ser_ptra<Type>(obj, len, os);
-};
+    /* Arithmetic || string */
+    template <typename Type>
+    typename std::enable_if<std::is_arithmetic<Type>::value || std::is_same<Type, std::string>::value>::type Serializer(
+        const Type &obj, std::ostream &buf) {
+        buf << obj << sep;
+    };
 
-template <typename Type1, typename Type2>
-void Bin_Ser::serialize(std::pair<Type1, Type2> &obj, std::string path) {
-	//std::ofstream os(path);
-	serialize(obj.first, path);
-	serialize(obj.second, path);
-	//ser::ser_pair<Type1, Type2>(obj, os);
-};
+    /* pair */
+    template <typename Type1, typename Type2>
+    void Serializer(const std::pair<Type1, Type2> &obj, std::ostream &buf) {
+        Serializer(obj.first, buf);
+        Serializer(obj.second, buf);
+    };
 
-template <typename Type>
-void Bin_Ser::serialize(std::unique_ptr<Type> &obj, std::string path) {
-	std::ofstream os(path);
-	ser::ser_uptr<Type>(obj, os);
-	//serialize(*obj, path);
-};
+    /* vector */
+    template <typename Type>
+    void Serializer(const std::vector<Type> &obj, std::ostream &buf) {
+        buf << obj.size() << sep;
+        for (auto &i : obj)
+            Serializer(i, buf);
+    }
 
-template<typename Type>
-void Bin_Ser::serialize(std::unique_ptr<Type[]> &obj, std::string path, std::size_t len) {
-	std::ofstream os(path);
-	ser::ser_uptra<Type[]>(obj, len, os);
-	//serialize(*obj, path);//?
-};
+    /* list */
+    template <typename Type>
+    void Serializer(const std::list<Type> &obj, std::ostream &buf) {
+        buf << obj.size() << sep;
+        for (auto &i : obj)
+            Serializer(i, buf);
+    }
 
-template <typename Type>
-void Bin_Ser::serialize(std::shared_ptr<Type> &obj, std::string path) {
-	std::ofstream os(path);
-	ser::ser_sptr<Type>(obj, os);
-	//serialize(*obj, path);
-};
+    /* set */
+    template <typename Type>
+    void Serializer(const std::set<Type> &obj, std::ostream &buf) {
+        buf << obj.size() << sep;
+        for (auto &i : obj)
+            Serializer(i, buf);
+    }
 
-template<typename Type>
-void Bin_Ser::serialize(std::shared_ptr<Type[]> &obj, std::string path, std::size_t len) {
-	std::ofstream os(path);
-	ser::ser_sptra<Type[]>(obj, len, os);
-};
+    /* map */
+    template <typename Type1, typename Type2>
+    void Serializer(const std::map<Type1, Type2, std::less<Type1>, std::allocator<std::pair<const Type1, Type2>>> &obj,
+        std::ostream &buf) {
+        buf << obj.size() << sep;
+        for (auto &i : obj)
+            Serializer<Type1, Type2>(i, buf);
+    }
 
-template <typename Type>
-void Bin_Ser::serialize(std::vector<Type> &obj, std::string path) {
-	//std::ofstream os(path);
-	//ser::ser_vec<Type>(obj, os);
-	serialize(obj.size(), path);
-	for (auto &elem : obj) {
-		serialize(elem, path);
-	}
-};
+    /* unique_ptr */
+    template <typename Type>
+    void Serializer(const std::unique_ptr<Type> &obj, std::ostream &buf) {
+        Serializer(*obj, buf);
+    }
+    template <typename Type>
+    void Serializer(const std::unique_ptr<Type[]> &obj, std::ostream &buf, size_t len) {
+        buf << len << sep;
+        for (size_t i = 0; i < len; i++)
+            Serializer(obj[i], buf);
+    }
 
-template <typename Type>
-void Bin_Ser::serialize(std::list<Type> &obj, std::string path) {
-	//std::ofstream os(path);
-	//ser::ser_list<Type>(obj, os);
-	serialize(obj.size(), path);
-	for (auto &elem : obj) {
-		serialize(elem, path);
-	}
-};
+    /* shared_ptr */
+    template <typename Type>
+    void Serializer(const std::shared_ptr<Type> &obj, std::ostream &buf) {
+        Serializer(*obj, buf);
+    }
+    template <typename Type>
+    void Serializer(const std::shared_ptr<Type[]> &obj, std::ostream &buf, size_t len) {
+        buf << len << sep;
+        for (size_t i = 0; i < len; i++)
+            Serializer(obj[i], buf);
+    }
 
-template <typename Type>
-void Bin_Ser::serialize(std::set<Type> &obj, std::string path) {
-	//std::ofstream os(path);
-	//ser::ser_set<Type>(obj, os);
-	serialize(obj.size(), path);
-	for (auto &elem : obj) {
-		serialize(elem, path);
-	}
-};
+    /* ptr */
+    template <typename Type>
+    void Serializer(const Type *obj, std::ostream &buf, size_t len) {
+        buf << len << sep;
+        for (size_t i = 0; i < len; i++)
+            Serializer(obj[i], buf);
+    }
 
-template <typename Type1, typename Type2>
-void Bin_Ser::serialize(std::map<Type1, Type2> &obj, std::string path) {
-	//std::ofstream os(path);
-	//ser::ser_map<Type1, Type2>(obj, os);
-	serialize(obj.size(), path);
-	for (auto &elem : obj) {
-		serialize(elem, path);
-	}
-};
-/*------------------------------------------------------------*/
-/*deserialize*/
-class Bin_Des {
-public://typename std::enable_if<std::is_arithmetic<Type>::value>::type
-	template<typename Type> typename std::enable_if<std::is_arithmetic<Type>::value>::type deserialize(Type &obj, std::string path);
-	template<typename Type> typename std::enable_if<std::is_pointer<Type>::value>::type deserialize(Type &obj, std::string path);
-	template<typename Type> void deserialize(Type &obj, std::string path, std::size_t len);
-	template<typename Type> void deserialize(std::unique_ptr<Type> &obj, std::string path);
-	template<typename Type> void deserialize(std::shared_ptr<Type> &obj, std::string path);
-	template<typename Type> void deserialize(std::vector<Type> &obj, std::string path);
-	template<typename Type> void deserialize(std::list<Type> &obj, std::string path);
-	template<typename Type> void deserialize(std::set<Type> &obj, std::string path);
-	template<typename Type>	void deserialize(std::unique_ptr<Type[]> &obj, std::string path, std::size_t len);
-	template<typename Type>	void deserialize(std::shared_ptr<Type[]> &obj, std::string path, std::size_t len);
-	template<typename Type1, typename Type2> void deserialize(std::pair<Type1, Type2> &obj, std::string path);
-	template<typename Type1, typename Type2> void deserialize(std::map<Type1, Type2> &obj, std::string path);
-};
+}  // namespace ser
 
-template <typename Type >
-typename std::enable_if<std::is_arithmetic<Type>::value>::type 
-Bin_Des::deserialize(Type &obj, std::string path) {
-		std::ifstream is(path);
-		des::des_ari<Type>(obj, is);
-	};
+namespace des {
 
-template <typename Type>
-typename std::enable_if<std::is_pointer<Type>::value>::type 
-Bin_Des::deserialize(Type &obj, std::string path) {
-	std::ifstream is(path);
-	des::des_ptr<Type>(obj, is);
-};
+    template <typename Type>
+    typename std::enable_if<std::is_arithmetic<Type>::value || std::is_same<Type, std::string>::value>::type
+    Deserializer(Type &, std::istream &);
+    template <typename Type1, typename Type2>
+    void Deserializer(std::pair<Type1, Type2> &, std::istream &);
+    template <typename Type>
+    void Deserializer(std::vector<Type> &, std::istream &);
+    template <typename Type>
+    void Deserializer(std::list<Type> &, std::istream &);
+    template <typename Type>
+    void Deserializer(std::set<Type> &, std::istream &);
+    template <typename Type1, typename Type2>
+    void Deserializer(std::map<Type1, Type2> &, std::istream &);
+    template <typename Type>
+    void Deserializer(std::unique_ptr<Type> &, std::istream &);
+    template <typename Type>
+    void Deserializer(std::unique_ptr<Type[]> &, std::istream &, size_t len = 1);
+    template <typename Type>
+    void Deserializer(std::shared_ptr<Type> &, std::istream &);
+    template <typename Type>
+    void Deserializer(std::shared_ptr<Type[]> &, std::istream &, size_t len = 1);
+    template <typename Type>
+    void Deserializer(Type *, std::istream &, size_t len = 1);
 
-template <typename Type>
-void Bin_Des::deserialize(Type &obj, std::string path, std::size_t len) {
-	std::ifstream is(path);
-	des::des_ptra(obj, is);
-};
+    /* Arithmetic || string */
+    template <typename Type>
+    typename std::enable_if<std::is_arithmetic<Type>::value || std::is_same<Type, std::string>::value>::type
+    Deserializer(Type &obj, std::istream &buf) {
+        buf >> obj;
+    }
 
-template <typename Type1, typename Type2>
-void Bin_Des::deserialize(std::pair<Type1, Type2> &obj, std::string path) {
-	std::ifstream is(path);
-	deserialize(obj.first, path);
-	deserialize(obj.second, path);
-	//des::des_pair<Type1, Type2>(obj, is);
-};
+    /* pair */
+    template <typename Type1, typename Type2>
+    void Deserializer(std::pair<Type1, Type2> &obj, std::istream &buf) {
+        Type1 tmp1;
+        Type2 tmp2;
+        Deserializer(tmp1, buf);
+        Deserializer(tmp2, buf);
+        obj = std::make_pair(tmp1, tmp2);
+    };
 
-template <typename Type>
-void Bin_Des::deserialize(std::unique_ptr<Type> &obj, std::string path) {
-	std::ifstream is(path);
-	des::des_uptr<Type>(obj, is);
-	//deserialize(*obj, path);
-};
+    /* vector */
+    template <typename Type>
+    void Deserializer(std::vector<Type> &obj, std::istream &buf) {
+        size_t len;
+        buf >> len;
+        obj.resize(len);
+        for (auto &i : obj)
+            Deserializer(i, buf);
+    }
 
-template<typename Type>
-void Bin_Des::deserialize(std::unique_ptr<Type[]> &obj, std::string path, std::size_t len) {
-	std::ifstream is(path);
-	des::des_uptra<Type[]>(obj, len, is);
-};
+    /* list */
+    template <typename Type>
+    void Deserializer(std::list<Type> &obj, std::istream &buf) {
+        size_t len;
+        buf >> len;
+        obj.resize(len);
+        for (auto &i : obj)
+            Deserializer(i, buf);
+    }
 
-template <typename Type>
-void Bin_Des::deserialize(std::shared_ptr<Type> &obj, std::string path) {
-	std::ifstream is(path);
-	des::des_sptr<Type>(obj, is);
-};
+    /* set */
+    template <typename Type>
+    void Deserializer(std::set<Type> &obj, std::istream &buf) {
+        size_t len;
+        buf >> len;
+        for (size_t i = 0; i < len; i++) {
+            Type tmp;
+            Deserializer(tmp, buf);
+            obj.insert(tmp);
+        }
+    }
 
-template<typename Type>
-void Bin_Des::deserialize(std::shared_ptr<Type[]> &obj, std::string path, std::size_t len) {
-	std::ifstream is(path);
-	des::des_sptra<Type[]>(obj, len, is);
-};
+    /* map */
+    template <typename Type1, typename Type2>
+    void Deserializer(std::map<Type1, Type2> &obj, std::istream &buf) {
+        size_t len;
+        buf >> len;
+        for (size_t i = 0; i < len; i++) {
+            Type1 tmp1;
+            Type2 tmp2;
+            Deserializer(tmp1, buf);
+            Deserializer(tmp2, buf);
+            obj.insert(std::make_pair(tmp1, tmp2));
+        }
+    }
 
-template <typename Type>
-void Bin_Des::deserialize(std::vector<Type> &obj, std::string path) {
-	//std::ifstream is(path);
-	//des::des_vec<Type>(obj, is);
-	deserialize(obj.size(), path);
-	for (auto &elem : obj) {
-		deserialize(elem, path);
-	}
-};
+    /* unique_ptr */
+    template <typename Type>
+    void Deserializer(std::unique_ptr<Type> &obj, std::istream &buf) {
+        obj = std::unique_ptr<Type>(new Type);
+        Deserializer(*obj, buf);
+    }
+    template <typename Type>
+    void Deserializer(std::unique_ptr<Type[]> &obj, std::istream &buf, size_t len) {
+        obj = std::unique_ptr<Type[]>(new Type[len]);
+        for (size_t i = 0; i < len; i++)
+            Deserializer(obj[i], buf);
+    }
 
-template <typename Type>
-void Bin_Des::deserialize(std::list<Type> &obj, std::string path) {
-	//std::ifstream is(path);
-	//des::des_list<Type>(obj, is);
-	deserialize(obj.size(), path);
-	for (auto &elem : obj) {
-		deserialize(elem, path);
-	}
-};
+    /* shared_ptr */
+    template <typename Type>
+    void Deserializer(std::shared_ptr<Type> &obj, std::istream &buf) {
+        obj = std::shared_ptr<Type>(new Type);
+        Deserializer(obj, buf);
+    }
+    template <typename Type>
+    void Deserializer(std::shared_ptr<Type[]> &obj, std::istream &buf, size_t len) {
+        obj = std::unique_ptr<Type>(new Type[len]);
+        for (size_t i = 0; i < len; i++)
+            Deserializer(obj[i], buf);
+    }
 
-template <typename Type>
-void Bin_Des::deserialize(std::set<Type> &obj, std::string path) {
-	//std::ifstream is(path);
-	//des::des_set<Type>(obj, is);
-	deserialize(obj.size(), path);
-	for (auto &elem : obj) {
-		deserialize(elem, path);
-	}
-};
-
-template <typename Type1, typename Type2>
-void Bin_Des::deserialize(std::map<Type1, Type2> &obj, std::string path) {
-	//std::ifstream is(path);
-	//des::des_map<Type1, Type2>(obj, is);
-	deserialize(obj.size(), path);
-	for (auto &elem : obj) {
-		deserialize(elem, path);
-	}
-};
+    /* ptr */
+    template <typename Type>
+    void Deserializer(Type *obj, std::istream &buf, size_t len) {
+        obj = new Type[len];
+        for (size_t i = 0; i < len; i++)
+            Deserializer(obj[i], buf);
+    }
+}  // namespace des
 
 #endif
