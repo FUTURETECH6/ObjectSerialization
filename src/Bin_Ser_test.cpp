@@ -41,78 +41,78 @@ int main(int argc, char const *argv[]) {
 
     switch (typelist(rr)) {
         case typelist(ari):
-            ser::Serializer(i0, ofile);
+            Bin_Ser::Serializer(i0, ofile);
             ofile.close();
-            des::Deserializer(i, ifile);
+            Bin_Des::Deserializer(i, ifile);
             break;
 
         case typelist(pair):
-            ser::Serializer(psi0, ofile);
+            Bin_Ser::Serializer(psi0, ofile);
             ofile.close();
-            des::Deserializer(psi, ifile);
+            Bin_Des::Deserializer(psi, ifile);
             break;
 
         case typelist(vec):
-            ser::Serializer(vi0, ofile);
+            Bin_Ser::Serializer(vi0, ofile);
             ofile.close();
-            des::Deserializer(vi, ifile);
+            Bin_Des::Deserializer(vi, ifile);
             break;
 
         case typelist(list):
-            ser::Serializer(li0, ofile);
+            Bin_Ser::Serializer(li0, ofile);
             ofile.close();
-            des::Deserializer(li, ifile);
+            Bin_Des::Deserializer(li, ifile);
             break;
 
         case typelist(ptr):
-            ser::Serializer(pi0, ofile);
+            Bin_Ser::Serializer(pi0, ofile);
             ofile.close();
-            des::Deserializer(pi, ifile);
+            Bin_Des::Deserializer(pi, ifile);
             break;
 
         case typelist(ptra):
-            ser::Serializer(pai0, ofile, 5);
+            Bin_Ser::Serializer(pai0, ofile, 5);
             ofile.close();
-            des::Deserializer(pai, ifile);
+            Bin_Des::Deserializer(pai, ifile);
             for (auto i = 0; i < 5; i++)
                 cerr << pai[i] << " ";
             break;
 
         case typelist(uptr):
-            ser::Serializer(upi0, ofile);
+            Bin_Ser::Serializer(upi0, ofile);
             ofile.close();
-            des::Deserializer(upi, ifile);
+            Bin_Des::Deserializer(upi, ifile);
             break;
 
         case typelist(uptra):
-            ser::Serializer(upai0, ofile, 5);
+            Bin_Ser::Serializer(upai0, ofile, 5);
             ofile.close();
-            des::Deserializer(upai, ifile);
+            Bin_Des::Deserializer(upai, ifile);
             for (auto i = 0; i < 5; i++)
                 cerr << upai[i] << " ";
             break;
 
         case typelist(sptr):
-            ser::Serializer(spi0, ofile);
+            Bin_Ser::Serializer(spi0, ofile);
             ofile.close();
-            des::Deserializer(spi, ifile);
+            Bin_Des::Deserializer(spi, ifile);
             break;
 
         case typelist(set):
-            ser::Serializer(si0, ofile);
+            Bin_Ser::Serializer(si0, ofile);
             ofile.close();
-            des::Deserializer(si, ifile);
+            Bin_Des::Deserializer(si, ifile);
             break;
 
         case typelist(map):
-            ser::Serializer(msi0, ofile);
+            Bin_Ser::Serializer(msi0, ofile);
             ofile.close();
-            des::Deserializer(msi, ifile);
+            Bin_Des::Deserializer(msi, ifile);
             break;
         case typelist(rr):
-            ser::Serializer(pmsiss0, ofile);
+            Bin_Ser::Serializer(pmsiss0, ofile);
             ofile.close();
-            des::Deserializer(pmsiss, ifile);
+            Bin_Des::Deserializer(pmsiss, ifile);
             break;
     }
 

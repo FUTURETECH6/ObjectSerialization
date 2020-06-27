@@ -13,7 +13,7 @@
 #include <utility>
 #include <vector>
 
-namespace ser {
+namespace Bin_Ser {
     const std::string sep = " ";
 
     template <typename Type>
@@ -119,9 +119,9 @@ namespace ser {
             Serializer(obj[i], buf);
     }
 
-}  // namespace ser
+}  // namespace Bin_Ser
 
-namespace des {
+namespace Bin_Des {
 
     template <typename Type>
     typename std::enable_if<std::is_arithmetic<Type>::value || std::is_same<Type, std::string>::value>::type
@@ -139,13 +139,13 @@ namespace des {
     template <typename Type>
     void Deserializer(std::unique_ptr<Type> &, std::istream &);
     template <typename Type>
-    void Deserializer(std::unique_ptr<Type[]> &, std::istream &, size_t len = 1);
+    void Deserializer(std::unique_ptr<Type[]> &, std::istream &);
     template <typename Type>
     void Deserializer(std::shared_ptr<Type> &, std::istream &);
     template <typename Type>
-    void Deserializer(std::shared_ptr<Type[]> &, std::istream &, size_t len = 1);
+    void Deserializer(std::shared_ptr<Type[]> &, std::istream &);
     template <typename Type>
-    void Deserializer(Type *, std::istream &, size_t len = 1);
+    void Deserializer(Type *, std::istream &);
 
     /* Arithmetic || string */
     template <typename Type>
@@ -217,7 +217,9 @@ namespace des {
         Deserializer(*obj, buf);
     }
     template <typename Type>
-    void Deserializer(std::unique_ptr<Type[]> &obj, std::istream &buf, size_t len) {
+    void Deserializer(std::unique_ptr<Type[]> &obj, std::istream &buf) {
+        size_t len;
+        buf >> len;
         obj = std::unique_ptr<Type[]>(new Type[len]);
         for (size_t i = 0; i < len; i++)
             Deserializer(obj[i], buf);
@@ -227,10 +229,12 @@ namespace des {
     template <typename Type>
     void Deserializer(std::shared_ptr<Type> &obj, std::istream &buf) {
         obj = std::shared_ptr<Type>(new Type);
-        Deserializer(obj, buf);
+        Deserializer(*obj, buf);
     }
     template <typename Type>
-    void Deserializer(std::shared_ptr<Type[]> &obj, std::istream &buf, size_t len) {
+    void Deserializer(std::shared_ptr<Type[]> &obj, std::istream &buf) {
+        size_t len;
+        buf >> len;
         obj = std::unique_ptr<Type>(new Type[len]);
         for (size_t i = 0; i < len; i++)
             Deserializer(obj[i], buf);
@@ -238,11 +242,14 @@ namespace des {
 
     /* ptr */
     template <typename Type>
-    void Deserializer(Type *obj, std::istream &buf, size_t len) {
-        obj = new Type[len];
+    void Deserializer(Type *obj, std::istream &buf) {
+        size_t len;
+        buf >> len;
+        // obj = new Type[len];
+        obj = (Type *)malloc(len * sizeof(Type));
         for (size_t i = 0; i < len; i++)
             Deserializer(obj[i], buf);
     }
-}  // namespace des
+}  // namespace Bin_Des
 
 #endif
