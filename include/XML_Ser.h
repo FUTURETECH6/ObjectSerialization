@@ -119,7 +119,7 @@ class xml_ser {
         newNode->SetAttribute("size", len);
         parent->InsertEndChild(newNode);
         int count = 0;
-        for (auto i = 0; i < len; i++)
+        for (size_t i = 0; i < len; i++)
             Serializer(obj[i], "unique_ptra_" + std::to_string(count++), newNode);
     }
 
@@ -225,7 +225,7 @@ class xml_des {
         buffer >> len;
         buffer.clear();
         tinyxml2::XMLElement *nextNode = Node->FirstChildElement();
-        for (auto i = 0; i < len; i++) {
+        for (size_t i = 0; i < len; i++) {
             Type tmp;
             Deserializer(tmp, "set_", nextNode);
             obj.insert(tmp);
@@ -241,7 +241,7 @@ class xml_des {
         buffer >> len;
         buffer.clear();
         tinyxml2::XMLElement *nextNode = Node->FirstChildElement();
-        for (auto i = 0; i < len; i++) {
+        for (size_t i = 0; i < len; i++) {
             Type1 tmp1;
             Type2 tmp2;
             Deserializer(tmp1, "map_first", nextNode->FirstChildElement());
@@ -261,7 +261,7 @@ class xml_des {
     void Deserializer(std::unique_ptr<Type[]> &obj, std::string NodeName, tinyxml2::XMLElement *Node, size_t len) {
         obj                            = std::unique_ptr<Type[]>(new Type[len]);
         tinyxml2::XMLElement *nextNode = Node->FirstChildElement();
-        for (auto i = 0; i < len; i++) {
+        for (size_t i = 0; i < len; i++) {
             Deserializer(obj[i], "unique_ptra_", nextNode);
             nextNode = nextNode->NextSiblingElement();
         }
