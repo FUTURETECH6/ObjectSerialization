@@ -3,6 +3,7 @@
 
 #include "Bin_Ser.h"
 #include "XML_Ser.h"
+#include "tinyxml2.h"
 
 #include <fstream>
 #include <sstream>
@@ -38,6 +39,18 @@ namespace Ser {
 
         output(buf, path);
     }
+
+	template <typename Type>
+	void serialize_xml(const Type &obj, const std::string name, const std::string path) {
+		xml_ser X_Ser(path.c_str());
+		X_Ser.Serializer(obj, name, X_Ser.root);
+	}
+
+	template <typename Type>
+	void serialize_xml(const Type &obj, const std::string name, const std::string path, size_t len) {
+		xml_ser X_Ser(path.c_str());
+		X_Ser.Serializer(obj, name, X_Ser.root, len);
+	}
 }  // namespace Ser
 
 namespace Des {
@@ -70,6 +83,20 @@ namespace Des {
         input(buf, path);
         Bin_Des::Deserializer(obj, buf, len);
     }
+
+	template <typename Type>
+	void deserialize_xml(Type &obj, const std::string name, const std::string path) {
+		xml_des X_Des(path.c_str());
+		X_Des.Deserializer(obj, name, (X_Des.root)->FirstChildElement());
+	}
+
+	template <typename Type>
+	void deserialize_xml(Type &obj, const std::string name, const std::string path, size_t len) {
+		xml_des X_Des(path.c_str());
+		X_Des.Deserializer(obj, name, (X_Des.root)->FirstChildElement(), len);
+	}
+
+
 }  // namespace Des
 
 #endif
