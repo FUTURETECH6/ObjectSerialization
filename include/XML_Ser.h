@@ -17,10 +17,11 @@
 #include <vector>
 
 class xml_ser {
-  public:
+  private:
     tinyxml2::XMLDocument doc;
-    tinyxml2::XMLElement *root;
     const char *FilePath;
+  public:
+    tinyxml2::XMLElement *root;
     xml_ser(const char *filepath) : FilePath(filepath) {
         if (doc.LoadFile(FilePath)) {
             std::fstream file(FilePath);
@@ -41,6 +42,16 @@ class xml_ser {
         newNode->SetAttribute("val", obj);
         parent->InsertEndChild(newNode);
     };
+
+	/* bool */
+	void Serializer(const bool &obj, std::string NodeName, tinyxml2::XMLElement *parent) {
+		tinyxml2::XMLElement *newNode = doc.NewElement(NodeName.c_str());
+		if(obj)
+			newNode->SetAttribute("val", 1);
+		else
+			newNode->SetAttribute("val", 0);
+		parent->InsertEndChild(newNode);
+	};
 
     /* string */
     template <typename Type>
@@ -156,8 +167,9 @@ class xml_ser {
         tinyxml2::XMLElement *newNode = doc.NewElement(NodeName.c_str());
         newNode->SetAttribute("size", len);
         parent->InsertEndChild(newNode);
+		int count = 0;
         for (auto i = 0; i < len; i++)
-            Serializer(obj[i], "ptra_" + std::to_string(i), newNode);
+            Serializer(obj[i], "ptra_" + std::to_string(count++), newNode);
     }
 };
 /*---------------------------------------------------------------------------*/
@@ -204,8 +216,9 @@ class xml_des {
         buffer.clear();
         obj.resize(len);
         tinyxml2::XMLElement *nextNode = Node->FirstChildElement();
+		int count = 0;
         for (auto &i : obj) {
-            Deserializer(i, "vector_", nextNode);
+            Deserializer(i, "vector_" + std::to_string(count++), nextNode);
             nextNode = nextNode->NextSiblingElement();
         }
     }
@@ -219,8 +232,9 @@ class xml_des {
         buffer.clear();
         obj.resize(len);
         tinyxml2::XMLElement *nextNode = Node->FirstChildElement();
+		int count = 0;
         for (auto &i : obj) {
-            Deserializer(i, "list_", nextNode);
+            Deserializer(i, "list_" + std::to_string(count++), nextNode);
             nextNode = nextNode->NextSiblingElement();
         }
     }
@@ -233,9 +247,10 @@ class xml_des {
         buffer >> len;
         buffer.clear();
         tinyxml2::XMLElement *nextNode = Node->FirstChildElement();
+		int count = 0;
         for (auto i = 0; i < len; i++) {
             Type tmp;
-            Deserializer(tmp, "set_", nextNode);
+            Deserializer(tmp, "set_" + std::to_string(count++), nextNode);
             obj.insert(tmp);
             nextNode = nextNode->NextSiblingElement();
         }
@@ -269,8 +284,9 @@ class xml_des {
     void Deserializer(std::unique_ptr<Type[]> &obj, std::string NodeName, tinyxml2::XMLElement *Node, size_t len) {
         obj                            = std::unique_ptr<Type[]>(new Type[len]);
         tinyxml2::XMLElement *nextNode = Node->FirstChildElement();
+		int count = 0;
         for (auto i = 0; i < len; i++) {
-            Deserializer(obj[i], "unique_ptra_", nextNode);
+            Deserializer(obj[i], "unique_ptra_" + std::to_string(count++), nextNode);
             nextNode = nextNode->NextSiblingElement();
         }
     }
@@ -285,8 +301,9 @@ class xml_des {
     void Deserializer(std::shared_ptr<Type[]> &obj, std::string NodeName, tinyxml2::XMLElement *Node, size_t len) {
         obj                            = std::unique_ptr<Type>(new Type[len]);
         tinyxml2::XMLElement *nextNode = Node->FirstChildElement();
+		int count = 0;
         for (auto i = 0; i < len; i++) {
-            Deserializer(obj[i], "shared_ptra_", nextNode);
+            Deserializer(obj[i], "shared_ptra_" + std::to_string(count++), nextNode);
             nextNode = nextNode->NextSiblingElement();
         }
     }
@@ -303,8 +320,9 @@ class xml_des {
     void Deserializer(Type *obj, std::string NodeName, tinyxml2::XMLElement *Node, size_t len) {
         // obj = new Type[len];
         tinyxml2::XMLElement *nextNode = Node->FirstChildElement();
+		int count = 0;
         for (auto i = 0; i < len; i++) {
-            Deserializer(obj[i], "ptra_", nextNode);
+            Deserializer(obj[i], "ptra_" + std::to_string(count++), nextNode);
             nextNode = nextNode->NextSiblingElement();
         }
     }
