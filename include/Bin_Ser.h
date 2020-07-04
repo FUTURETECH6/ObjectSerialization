@@ -38,7 +38,7 @@ namespace Bin_Ser {
     template <typename Type>
     void Serializer(const std::shared_ptr<Type[]> &, std::ostream &, size_t len = 1);
     template <typename Type>
-    void Serializer(const Type *obj, std::ostream &buf, size_t len = 1);
+    void Serializer(Type *const &, std::ostream &, size_t len = 1);
 
     /* Arithmetic || string */
     template <typename Type>
@@ -113,11 +113,17 @@ namespace Bin_Ser {
 
     /* ptr */
     template <typename Type>
-    void Serializer(const Type *obj, std::ostream &buf, size_t len) {
+    void Serializer(Type *const &obj, std::ostream &buf, size_t len) {
         buf << len << sep;
         for (size_t i = 0; i < len; i++)
             Serializer(obj[i], buf);
     }
+
+    /* User-defined*/
+    // template <typename Type>
+    // void Serializer(const Type obj, std::ostream &buf) {
+    //     copy(&obj, &obj + sizeof(Type), ostream_iterator<char>(buf, ""));
+    // }
 
 }  // namespace Bin_Ser
 
@@ -145,7 +151,7 @@ namespace Bin_Des {
     template <typename Type>
     void Deserializer(std::shared_ptr<Type[]> &, std::istream &);
     template <typename Type>
-    void Deserializer(Type *, std::istream &);
+    void Deserializer(const Type *&, std::istream &);
 
     /* Arithmetic || string */
     template <typename Type>
@@ -242,14 +248,18 @@ namespace Bin_Des {
 
     /* ptr */
     template <typename Type>
-    void Deserializer(Type *obj, std::istream &buf) {
+    void Deserializer(Type *&obj, std::istream &buf) {
         size_t len;
         buf >> len;
-        // obj = new Type[len];
-        obj = (Type *)malloc(len * sizeof(Type));
+        obj = new Type[len];
+        // obj = (Type *)malloc(len * sizeof(Type));
         for (size_t i = 0; i < len; i++)
             Deserializer(obj[i], buf);
     }
+
+    /* User-defined */
+    // template <typename Type>
+    // void Deserializer(Type &obj, std::istream &buf) {}
 }  // namespace Bin_Des
 
 #endif

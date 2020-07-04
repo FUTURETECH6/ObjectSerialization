@@ -19,18 +19,18 @@ vector<int> vi, vix, vi0          = {1, 3, 5, 7};
 list<int> li, lix, li0            = {2, 4, 6, 8};
 set<int> si, six, si0             = {6, 7, 33, 9, 81, 31, 54};
 map<string, int> msi, msix, msi0  = {pair<string, int>("SC", 666), pair<string, int>("cx", 999)};
-int *pi, *pi0 = &i0;
-// int *pai, pai0[] = {1, 45, 6, 3, 2};
-unique_ptr<int> upi, upix, upi0      = unique_ptr<int>(new int(19));
-unique_ptr<int[]> upai, upaix, upai0 = unique_ptr<int[]>(new int[5]);
-shared_ptr<int> spi, spix, spi0      = shared_ptr<int>(new int(89));
+int *pi = new int, *pix = new int, *pi0 = &i0;
+int *pai = new int[5], *paix = new int[5], *pai0 = new int[5];
+unique_ptr<int> upi, upix, upi0                  = unique_ptr<int>(new int(19));
+unique_ptr<int[]> upai, upaix, upai0             = unique_ptr<int[]>(new int[5]);
+shared_ptr<int> spi, spix, spi0                  = shared_ptr<int>(new int(89));
 
 pair<map<string, int>, set<int>> complicated, complicatedx, complicated0 = make_pair(msi0, si0);
 
 int main(int argc, char const *argv[]) {
 
     for (auto i = 0; i < 5; i++)
-        upai0[i] = (i + 1) * (i + 1);
+        pai0[i] = upai0[i] = (i + 1) * (i + 1);
 
     Ser::enable_base64();
     Des::enable_base64();
@@ -85,11 +85,13 @@ inline void Ser_Des() {
 
     Ser::serialize(pi0, "./testfile/bin_ptr.txt");
     Des::deserialize(pi, "./testfile/bin_ptr.txt");
-    // Ser::serialize_xml(pi0, "int *", "./testfile/xml_.txt");
-    // Des::deserialize_xml(pix, "int *", "./testfile/xml_.txt");
+    // Ser::serialize_xml(pi0, "int *", "./testfile/xml_ptr.txt");
+    // Des::deserialize_xml(pix, "int *", "./testfile/xml_ptr.txt");
 
-    // Ser::serialize(pai0, "./testfile/bin_ptra.txt", 5);
-    // Des::deserialize(pai, "./testfile/bin_ptra.txt");
+    Ser::serialize(pai0, "./testfile/bin_ptra.txt", 5);
+    Des::deserialize(pai, "./testfile/bin_ptra.txt");
+    // Ser::serialize_xml(pai0, "int[]", "./testfile/xml_ptra.txt");
+    // Des::deserialize_xml(paix, "int[]", "./testfile/xml_.ptratxt");
 
     Ser::serialize(upi0, "./testfile/bin_uptr.txt");
     Des::deserialize(upi, "./testfile/bin_uptr.txt");
@@ -108,25 +110,30 @@ inline void Ser_Des() {
 }
 
 template <typename Type>
-typename enable_if<is_arithmetic<Type>::value>::type printOne(Type &);
+typename enable_if<is_arithmetic<Type>::value>::type printOne(const Type &);
+void printOne(const string &);
 template <typename Type1, typename Type2>
-void printOne(pair<Type1, Type2> &);
+void printOne(const pair<Type1, Type2> &);
 template <typename Type>
-void printOne(vector<Type> &);
+void printOne(const vector<Type> &);
 template <typename Type>
-void printOne(list<Type> &);
+void printOne(const list<Type> &);
 template <typename Type>
-void printOne(set<Type> &);
+void printOne(const set<Type> &);
 template <typename Type1, typename Type2>
-void printOne(map<Type1, Type2> &);
+void printOne(const map<Type1, Type2> &);
+template <typename Type>
+void printOne(Type *&, size_t len = 1);
+template <typename Type>
+void printOne(const unique_ptr<Type> &);
+template <typename Type>
+void printOne(const unique_ptr<Type[]> &, size_t);
+template <typename Type>
+void printOne(const shared_ptr<Type> &);
 
 template <typename Type>
-typename enable_if<is_arithmetic<Type>::value>::type printOne(Type &obj) {
+typename enable_if<is_arithmetic<Type>::value>::type printOne(const Type &obj) {
     cout << obj;
-}
-
-void printOne(string &obj) {
-    cout << "\"" << obj << "\"";
 }
 
 void printOne(const string &obj) {
@@ -134,7 +141,7 @@ void printOne(const string &obj) {
 }
 
 template <typename Type1, typename Type2>
-void printOne(pair<Type1, Type2> &obj) {
+void printOne(const pair<Type1, Type2> &obj) {
     cout << "(";
     printOne(obj.first);
     cout << ", ";
@@ -143,7 +150,7 @@ void printOne(pair<Type1, Type2> &obj) {
 }
 
 template <typename Type>
-void printOne(vector<Type> &obj) {
+void printOne(const vector<Type> &obj) {
     size_t count = obj.size();
     for (auto itor = obj.begin(); count-- > 0; itor++) {
         cout << (count == obj.size() - 1 ? "[" : "");
@@ -153,7 +160,7 @@ void printOne(vector<Type> &obj) {
 }
 
 template <typename Type>
-void printOne(list<Type> &obj) {
+void printOne(const list<Type> &obj) {
     size_t count = obj.size();
     for (auto itor = obj.begin(); count-- > 0; itor++) {
         cout << (count == obj.size() - 1 ? "[" : "");
@@ -163,7 +170,7 @@ void printOne(list<Type> &obj) {
 }
 
 template <typename Type>
-void printOne(set<Type> &obj) {
+void printOne(const set<Type> &obj) {
     size_t count = obj.size();
     for (auto itor = obj.begin(); count-- > 0; itor++) {
         cout << (count == obj.size() - 1 ? "{" : "");
@@ -173,7 +180,7 @@ void printOne(set<Type> &obj) {
 }
 
 template <typename Type1, typename Type2>
-void printOne(map<Type1, Type2> &obj) {
+void printOne(const map<Type1, Type2> &obj) {
     size_t count = obj.size();
     for (auto itor = obj.begin(); count-- > 0; itor++) {
         cout << (count == obj.size() - 1 ? "{" : "");
@@ -183,12 +190,19 @@ void printOne(map<Type1, Type2> &obj) {
 }
 
 template <typename Type>
-void printOne(unique_ptr<Type> &obj) {
+void printOne(Type *&obj, size_t len) {
+    cout << "[";
+    for (size_t i = 0; i < len; i++)
+        cout << obj[i] << (i != len - 1 ? ", " : "]");
+}
+
+template <typename Type>
+void printOne(const unique_ptr<Type> &obj) {
     cout << *obj;
 }
 
 template <typename Type>
-void printOne(unique_ptr<Type[]> &obj, size_t count) {
+void printOne(const unique_ptr<Type[]> &obj, size_t count) {
     size_t index = 0;
     cout << "[";
     for (; index < count; index++) {
@@ -198,7 +212,7 @@ void printOne(unique_ptr<Type[]> &obj, size_t count) {
 }
 
 template <typename Type>
-void printOne(shared_ptr<Type> &obj) {
+void printOne(const shared_ptr<Type> &obj) {
     cout << *obj;
 }
 
@@ -260,13 +274,22 @@ inline void printContainer() {
     printOne(complicatedx);
     cout << endl;
 
-    cout << "\nunique_ptr<int>" << endl;
-    cout << "*upi0: ";
-    printOne(upi0);
-    cout << "; *upi: ";
-    printOne(upi);
-    cout << "; *upix: ";
-    printOne(upix);
+    cout << "\nint *" << endl;
+    cout << "*pi0: ";
+    printOne(pi0);
+    cout << "; *pi: ";
+    printOne(pi);
+    cout << "; *pix: ";
+    printOne(pix);
+    cout << endl;
+
+    cout << "\nint[]" << endl;
+    cout << "pai0[]: ";
+    printOne(pai0, 5);
+    cout << "; pai[]: ";
+    printOne(pai, 5);
+    cout << "; paix[]: ";
+    printOne(paix, 5);
     cout << endl;
 
     cout << "\nunique_ptr<int[]>" << endl;
