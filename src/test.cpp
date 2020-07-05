@@ -79,36 +79,42 @@ int main(int argc, char const *argv[]) {
     Des::disable_base64();
 
     cout << "\n-------- User-defined Bianry test --------\n" << endl;
-
-    UserType_Ser_Bin test_bin("./testfile/bin_UserDefined.txt");
-    test_bin.serialize(UD0.x1);
-    test_bin.serialize(UD0.x2);
-    test_bin.serialize(UD0.x3);
-    test_bin.serialize(UD0.x4);
-    test_bin.serialize(UD0.x5);
-    UserType_Des_Bin test_bin_des("./testfile/bin_UserDefined.txt");
-    test_bin_des.deserialize(UDb.x1);
-    test_bin_des.deserialize(UDb.x2);
-    test_bin_des.deserialize(UDb.x3);
-    test_bin_des.deserialize(UDb.x4);
-    test_bin_des.deserialize(UDb.x5);
+    {
+        UserType_Ser_Bin test_bin("./testfile/bin_UserDefined.txt");
+        test_bin.serialize(UD0.x1);
+        test_bin.serialize(UD0.x2);
+        test_bin.serialize(UD0.x3);
+        test_bin.serialize(UD0.x4);
+        test_bin.serialize(UD0.x5);
+    }
+    {
+        UserType_Des_Bin test_bin("./testfile/bin_UserDefined.txt");
+        test_bin.deserialize(UDb.x1);
+        test_bin.deserialize(UDb.x2);
+        test_bin.deserialize(UDb.x3);
+        test_bin.deserialize(UDb.x4);
+        test_bin.deserialize(UDb.x5);
+    }
 
     UDb.print();
 
     cout << "\n\n-------- User-defined XML test --------\n" << endl;
-
-    UserType_Ser_Xml test_xml("./testfile/xml_UserDefined.txt");
-    test_xml.serialize_xml(UD0.x1, "int");
-    test_xml.serialize_xml(UD0.x2, "double");
-    test_xml.serialize_xml(UD0.x3, "bool");
-    test_xml.serialize_xml(UD0.x4, "string");
-    test_xml.serialize_xml(UD0.x5, "vector");
-    UserType_Des_Xml test_xml_des("./testfile/xml_UserDefined.txt");
-    test_xml_des.deserialize_xml(UDx.x1, "int");
-    test_xml_des.deserialize_xml(UDx.x2, "double");
-    test_xml_des.deserialize_xml(UDx.x3, "bool");
-    test_xml_des.deserialize_xml(UDx.x4, "string");
-    test_xml_des.deserialize_xml(UDx.x5, "vector");
+    {
+        UserType_Ser_Xml test_xml("./testfile/xml_UserDefined.txt");
+        test_xml.serialize_xml(UD0.x1, "int");
+        test_xml.serialize_xml(UD0.x2, "double");
+        test_xml.serialize_xml(UD0.x3, "bool");
+        test_xml.serialize_xml(UD0.x4, "string");
+        test_xml.serialize_xml(UD0.x5, "vector");
+    }
+    {
+        UserType_Des_Xml test_xml("./testfile/xml_UserDefined.txt");
+        test_xml.deserialize_xml(UDx.x1, "int");
+        test_xml.deserialize_xml(UDx.x2, "double");
+        test_xml.deserialize_xml(UDx.x3, "bool");
+        test_xml.deserialize_xml(UDx.x4, "string");
+        test_xml.deserialize_xml(UDx.x5, "vector");
+    }
 
     UDx.print();
 
