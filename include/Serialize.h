@@ -40,17 +40,17 @@ namespace Ser {
         output(buf, path);
     }
 
-	template <typename Type>
-	void serialize_xml(const Type &obj, const std::string name, const std::string path) {
-		xml_ser X_Ser(path.c_str());
-		X_Ser.Serializer(obj, name, X_Ser.root);
-	}
+    template <typename Type>
+    void serialize_xml(const Type &obj, const std::string name, const std::string path) {
+        xml_ser X_Ser(path.c_str());
+        X_Ser.Serializer(obj, name, X_Ser.root);
+    }
 
-	template <typename Type>
-	void serialize_xml(const Type &obj, const std::string name, const std::string path, size_t len) {
-		xml_ser X_Ser(path.c_str());
-		X_Ser.Serializer(obj, name, X_Ser.root, len);
-	}
+    template <typename Type>
+    void serialize_xml(const Type &obj, const std::string name, const std::string path, size_t len) {
+        xml_ser X_Ser(path.c_str());
+        X_Ser.Serializer(obj, name, X_Ser.root, len);
+    }
 }  // namespace Ser
 
 namespace Des {
@@ -84,19 +84,95 @@ namespace Des {
         Bin_Des::Deserializer(obj, buf, len);
     }
 
-	template <typename Type>
-	void deserialize_xml(Type &obj, const std::string name, const std::string path) {
-		xml_des X_Des(path.c_str());
-		X_Des.Deserializer(obj, name, (X_Des.root)->FirstChildElement());
-	}
+    template <typename Type>
+    void deserialize_xml(Type &obj, const std::string name, const std::string path) {
+        xml_des X_Des(path.c_str());
+        X_Des.Deserializer(obj, name, (X_Des.root)->FirstChildElement());
+    }
 
-	template <typename Type>
-	void deserialize_xml(Type &obj, const std::string name, const std::string path, size_t len) {
-		xml_des X_Des(path.c_str());
-		X_Des.Deserializer(obj, name, (X_Des.root)->FirstChildElement(), len);
-	}
-
+    template <typename Type>
+    void deserialize_xml(Type &obj, const std::string name, const std::string path, size_t len) {
+        xml_des X_Des(path.c_str());
+        X_Des.Deserializer(obj, name, (X_Des.root)->FirstChildElement(), len);
+    }
 
 }  // namespace Des
+
+class UserType_Ser_Bin {
+  public:
+    UserType_Ser_Bin(const std::string path) : path(path) {}
+    ~UserType_Ser_Bin() { Ser::output(buf, path); }
+
+    template <typename Type>
+    void serialize(Type &obj) {
+        Bin_Ser::Serializer(obj, buf);
+    }
+    template <typename Type>
+    void serialize(Type &obj, size_t len) {
+        Bin_Ser::Serializer(obj, buf, len);
+    }
+
+  private:
+    std::stringstream buf;
+    std::string path;
+};
+
+class UserType_Des_Bin {
+  public:
+    UserType_Des_Bin(const std::string path) : path(path) { Des::input(buf, path); }
+    ~UserType_Des_Bin() {}
+
+    template <typename Type>
+    void deserialize(Type &obj) {
+        Bin_Des::Deserializer(obj, buf);
+    }
+    template <typename Type>
+    void deserialize(Type &obj, size_t len) {
+        Bin_Des::Deserializer(obj, buf, len);
+    }
+
+  private:
+    std::stringstream buf;
+    std::string path;
+};
+
+class UserType_Ser_Xml : public xml_ser {
+  public:
+    UserType_Ser_Xml(const char *filepath) : xml_ser(filepath){};
+    ~UserType_Ser_Xml(){};
+
+    template <typename Type>
+    void serialize_xml(Type &obj, std::string NodeName) {
+        Serializer(obj, NodeName, root);
+    };
+    template <typename Type>
+    void serialize_xml(Type &obj, std::string NodeName, size_t len) {
+        Serializer(obj, NodeName, root, len);
+    };
+};
+
+class UserType_Des_Xml : public xml_des {
+  private:
+    tinyxml2::XMLElement *Child;
+
+  public:
+    UserType_Des_Xml(const char *filepath) : xml_des(filepath) { Child = root->FirstChildElement(); };
+    ~UserType_Des_Xml(){};
+
+    template <typename Type>
+    void deserialize_xml(Type &obj, std::string NodeName) {
+        if (Child) {
+            Deserializer(obj, NodeName, Child);
+            Child = Child->NextSiblingElement();
+        }
+    };
+    template <typename Type>
+    void deserialize_xml(Type &obj, std::string NodeName, size_t len) {
+        if (Child) {
+            Deserializer(obj, NodeName, Child, len);
+            Child = Child->NextSiblingElement();
+        }
+    };
+};
 
 #endif

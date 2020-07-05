@@ -113,18 +113,11 @@ namespace Bin_Ser {
 
     /* ptr */
     template <typename Type>
-    void Serializer(Type *const &obj, std::ostream &buf, size_t len) {
+    void Serializer(Type *const &obj, std::ostream &buf, size_t len) {  // default len = 1
         buf << len << sep;
         for (size_t i = 0; i < len; i++)
             Serializer(obj[i], buf);
     }
-
-    /* User-defined*/
-    // template <typename Type>
-    // void Serializer(const Type obj, std::ostream &buf) {
-    //     copy(&obj, &obj + sizeof(Type), ostream_iterator<char>(buf, ""));
-    // }
-
 }  // namespace Bin_Ser
 
 namespace Bin_Des {
@@ -256,10 +249,6 @@ namespace Bin_Des {
         for (size_t i = 0; i < len; i++)
             Deserializer(obj[i], buf);
     }
-
-    /* User-defined */
-    // template <typename Type>
-    // void Deserializer(Type &obj, std::istream &buf) {}
 }  // namespace Bin_Des
 
 #endif

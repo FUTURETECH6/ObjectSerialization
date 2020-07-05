@@ -1,19 +1,3 @@
-```mermaid
-classDiagram
-    class Serializer {
-        virtual serialize()
-        virtual deserialize()
-    }
-    class BinSer {
-        serialize()
-        deserialize()
-    }
-    class XMLSer {
-        serialize_xml()
-        deserialize_xml()
-    }
-    Serializer <|-- BinSer
-    Serializer <|-- XMLSer
-```
-
-为了减少编译时间，cmake中将各个模块先编译为静态库待使用
+* 使用`./run.sh`进行编译和测试
+* 输出结果在"./Output_of_test.txt"中，过程文件在"./testfile/"中
+* 对于用户自定义类型，可以在main()中用注释的方式选择是否使用Base64，对于其他类型，默认是先使用Base64获得结果，再关闭Base64获得一次，也可以通过注释的方式调换
