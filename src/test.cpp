@@ -12,12 +12,19 @@ using namespace std;
 
 inline void Ser_Des();
 inline void printContainer();
+template <typename Type>
+void printOne(const vector<Type> &);
 
 struct UserDefined {
     int x1;
     double x2;
     bool x3;
     string x4;
+    vector<int> x5;
+    void print() {
+        cout << x1 << endl << x2 << endl << x3 << endl << x4 << endl;
+        printOne(x5);
+    }
 } UD0, UDb, UDx;
 
 int i, ix, i0                     = 3;
@@ -43,32 +50,35 @@ int main(int argc, char const *argv[]) {
     UD0.x2 = 9.6;
     UD0.x3 = true;
     UD0.x4 = "myString";
+    UD0.x5 = vi0;
 
     /* Set Base64 for User-defined types: Choose one and comment the other */
-    Ser::enable_base64();
-    Des::enable_base64();
-    // Ser::disable_base64();
-    // Des::disable_base64();
+    // Ser::enable_base64();
+    // Des::enable_base64();
+    Ser::disable_base64();
+    Des::disable_base64();
 
     cout << "\n-------- User-defined Bianry test --------\n" << endl;
 
     {
-        UserType_Ser_Bin test_bin("./testfile/xml_UserDefined.txt");
+        UserType_Ser_Bin test_bin("./testfile/bin_UserDefined.txt");
         test_bin.serialize(UD0.x1);
         test_bin.serialize(UD0.x2);
         test_bin.serialize(UD0.x3);
         test_bin.serialize(UD0.x4);
+        test_bin.serialize(UD0.x5);
     }
     {
-        UserType_Des_Bin test_bin("./testfile/xml_UserDefined.txt");
+        UserType_Des_Bin test_bin("./testfile/bin_UserDefined.txt");
         test_bin.deserialize(UDb.x1);
         test_bin.deserialize(UDb.x2);
         test_bin.deserialize(UDb.x3);
         test_bin.deserialize(UDb.x4);
+        test_bin.deserialize(UDb.x5);
     }
-    cout << UDb.x1 << endl << UDb.x2 << endl << UDb.x3 << endl << UDb.x4 << endl;
+    UDb.print();
 
-    cout << "\n-------- User-defined XML test --------\n" << endl;
+    cout << "\n\n-------- User-defined XML test --------\n" << endl;
 
     {
         UserType_Ser_Xml test_xml("./testfile/xml_UserDefined.txt");
@@ -76,6 +86,7 @@ int main(int argc, char const *argv[]) {
         test_xml.serialize_xml(UD0.x2, "double");
         test_xml.serialize_xml(UD0.x3, "bool");
         test_xml.serialize_xml(UD0.x4, "string");
+        test_xml.serialize_xml(UD0.x5, "vector");
     }
     {
         UserType_Des_Xml test_xml("./testfile/xml_UserDefined.txt");
@@ -83,10 +94,11 @@ int main(int argc, char const *argv[]) {
         test_xml.deserialize_xml(UDx.x2, "double");
         test_xml.deserialize_xml(UDx.x3, "bool");
         test_xml.deserialize_xml(UDx.x4, "string");
+        test_xml.deserialize_xml(UDx.x5, "vector");
     }
-    cout << UDx.x1 << endl << UDx.x2 << endl << UDx.x3 << endl << UDx.x4 << endl;
+    UDx.print();
 
-    cout << "\n-------- Other types test --------" << endl;
+    cout << "\n\n-------- Other types test --------" << endl;
 
     Ser::enable_base64();
     Des::enable_base64();

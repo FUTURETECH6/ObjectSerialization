@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.0.0)
 project(ObjectSerialization VERSION 0.1.0)
 
 set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_BUILD_TYPE Release)
 
 set(MOD_LIST Base64 tinyxml2)
 
@@ -12,7 +13,7 @@ foreach(modName IN LISTS MOD_LIST)
 endforeach()
 
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin/)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wall")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -O3")
 add_executable(test.out ./src/test.cpp)
 
 foreach(modName IN LISTS MOD_LIST)
