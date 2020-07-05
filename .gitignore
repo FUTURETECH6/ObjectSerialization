@@ -5,3 +5,4 @@ build
 bin
 Req.md
 log.txt
+*.zip

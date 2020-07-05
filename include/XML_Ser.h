@@ -18,22 +18,22 @@
 
 class xml_ser {
   private:
-    tinyxml2::XMLDocument doc;
-    const char *FilePath;
+    tinyxml2::XMLDocument doc;  // the xml file
+    const char *FilePath;       // xml file path
 
   public:
-    tinyxml2::XMLElement *root;
+    tinyxml2::XMLElement *root;  // xml's root
     xml_ser(const char *filepath) : FilePath(filepath) {
-        if (doc.LoadFile(FilePath)) {
-            std::fstream file(FilePath);
+        if (doc.LoadFile(FilePath)) {     // load xml file
+            std::fstream file(FilePath);  // if fail, create one
             file.close();
             doc.LoadFile(FilePath);
         }
         doc.Clear();
         root = doc.NewElement("serialization");
-        doc.InsertFirstChild(root);
+        doc.InsertFirstChild(root);  // xml's root
     }
-    ~xml_ser() { doc.SaveFile(FilePath); }
+    ~xml_ser() { doc.SaveFile(FilePath); }  // if end, save the xml file
 
     /* Arithmetic */
     template <typename Type>
@@ -41,12 +41,14 @@ class xml_ser {
         const Type &obj, std::string NodeName, tinyxml2::XMLElement *parent) {
         tinyxml2::XMLElement *newNode = doc.NewElement(NodeName.c_str());
         newNode->SetAttribute("val", obj);
-        parent->InsertEndChild(newNode);
+        parent->InsertEndChild(newNode);  // insert new node into the xml tree
     };
 
     /* bool */
     void Serializer(const bool &obj, std::string NodeName, tinyxml2::XMLElement *parent) {
         tinyxml2::XMLElement *newNode = doc.NewElement(NodeName.c_str());
+        // if write bool without trans to 0/1, it will output string "true" or "false"
+        // but when read in a bool, it just can get a 0 or 1.
         if (obj)
             newNode->SetAttribute("val", 1);
         else
@@ -315,6 +317,8 @@ class xml_des {
     template <typename Type>
     typename std::enable_if<std::is_pointer<Type>::value>::type Deserializer(
         const Type &obj, std::string NodeName, tinyxml2::XMLElement *Node) {
+        // unlike smart pointer, when this function ends, it will die
+        // so it need to be allocated outside
         Deserializer(*obj, "ptr", Node->FirstChildElement());
     }
 

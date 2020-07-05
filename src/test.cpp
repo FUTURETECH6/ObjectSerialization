@@ -12,8 +12,28 @@ using namespace std;
 
 inline void Ser_Des();
 inline void printContainer();
+
+template <typename Type>
+typename enable_if<is_arithmetic<Type>::value>::type printOne(const Type &);
+void printOne(const string &);
+template <typename Type1, typename Type2>
+void printOne(const pair<Type1, Type2> &);
 template <typename Type>
 void printOne(const vector<Type> &);
+template <typename Type>
+void printOne(const list<Type> &);
+template <typename Type>
+void printOne(const set<Type> &);
+template <typename Type1, typename Type2>
+void printOne(const map<Type1, Type2> &);
+template <typename Type>
+void printOne(Type *&, size_t len = 1);
+template <typename Type>
+void printOne(const unique_ptr<Type> &);
+template <typename Type>
+void printOne(const unique_ptr<Type[]> &, size_t);
+template <typename Type>
+void printOne(const shared_ptr<Type> &);
 
 struct UserDefined {
     int x1;
@@ -60,42 +80,36 @@ int main(int argc, char const *argv[]) {
 
     cout << "\n-------- User-defined Bianry test --------\n" << endl;
 
-    {
-        UserType_Ser_Bin test_bin("./testfile/bin_UserDefined.txt");
-        test_bin.serialize(UD0.x1);
-        test_bin.serialize(UD0.x2);
-        test_bin.serialize(UD0.x3);
-        test_bin.serialize(UD0.x4);
-        test_bin.serialize(UD0.x5);
-    }
-    {
-        UserType_Des_Bin test_bin("./testfile/bin_UserDefined.txt");
-        test_bin.deserialize(UDb.x1);
-        test_bin.deserialize(UDb.x2);
-        test_bin.deserialize(UDb.x3);
-        test_bin.deserialize(UDb.x4);
-        test_bin.deserialize(UDb.x5);
-    }
+    UserType_Ser_Bin test_bin("./testfile/bin_UserDefined.txt");
+    test_bin.serialize(UD0.x1);
+    test_bin.serialize(UD0.x2);
+    test_bin.serialize(UD0.x3);
+    test_bin.serialize(UD0.x4);
+    test_bin.serialize(UD0.x5);
+    UserType_Des_Bin test_bin_des("./testfile/bin_UserDefined.txt");
+    test_bin_des.deserialize(UDb.x1);
+    test_bin_des.deserialize(UDb.x2);
+    test_bin_des.deserialize(UDb.x3);
+    test_bin_des.deserialize(UDb.x4);
+    test_bin_des.deserialize(UDb.x5);
+
     UDb.print();
 
     cout << "\n\n-------- User-defined XML test --------\n" << endl;
 
-    {
-        UserType_Ser_Xml test_xml("./testfile/xml_UserDefined.txt");
-        test_xml.serialize_xml(UD0.x1, "int");
-        test_xml.serialize_xml(UD0.x2, "double");
-        test_xml.serialize_xml(UD0.x3, "bool");
-        test_xml.serialize_xml(UD0.x4, "string");
-        test_xml.serialize_xml(UD0.x5, "vector");
-    }
-    {
-        UserType_Des_Xml test_xml("./testfile/xml_UserDefined.txt");
-        test_xml.deserialize_xml(UDx.x1, "int");
-        test_xml.deserialize_xml(UDx.x2, "double");
-        test_xml.deserialize_xml(UDx.x3, "bool");
-        test_xml.deserialize_xml(UDx.x4, "string");
-        test_xml.deserialize_xml(UDx.x5, "vector");
-    }
+    UserType_Ser_Xml test_xml("./testfile/xml_UserDefined.txt");
+    test_xml.serialize_xml(UD0.x1, "int");
+    test_xml.serialize_xml(UD0.x2, "double");
+    test_xml.serialize_xml(UD0.x3, "bool");
+    test_xml.serialize_xml(UD0.x4, "string");
+    test_xml.serialize_xml(UD0.x5, "vector");
+    UserType_Des_Xml test_xml_des("./testfile/xml_UserDefined.txt");
+    test_xml_des.deserialize_xml(UDx.x1, "int");
+    test_xml_des.deserialize_xml(UDx.x2, "double");
+    test_xml_des.deserialize_xml(UDx.x3, "bool");
+    test_xml_des.deserialize_xml(UDx.x4, "string");
+    test_xml_des.deserialize_xml(UDx.x5, "vector");
+
     UDx.print();
 
     cout << "\n\n-------- Other types test --------" << endl;
@@ -176,28 +190,6 @@ inline void Ser_Des() {
     Ser::serialize_xml(spi0, "shared_ptr＜int＞", "./testfile/xml_sptr.txt");
     Des::deserialize_xml(spix, "shared_ptr＜int＞", "./testfile/xml_sptr.txt");
 }
-
-template <typename Type>
-typename enable_if<is_arithmetic<Type>::value>::type printOne(const Type &);
-void printOne(const string &);
-template <typename Type1, typename Type2>
-void printOne(const pair<Type1, Type2> &);
-template <typename Type>
-void printOne(const vector<Type> &);
-template <typename Type>
-void printOne(const list<Type> &);
-template <typename Type>
-void printOne(const set<Type> &);
-template <typename Type1, typename Type2>
-void printOne(const map<Type1, Type2> &);
-template <typename Type>
-void printOne(Type *&, size_t len = 1);
-template <typename Type>
-void printOne(const unique_ptr<Type> &);
-template <typename Type>
-void printOne(const unique_ptr<Type[]> &, size_t);
-template <typename Type>
-void printOne(const shared_ptr<Type> &);
 
 template <typename Type>
 typename enable_if<is_arithmetic<Type>::value>::type printOne(const Type &obj) {
